@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"github.com/fatih/color"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 type Fetcher struct {}
@@ -32,6 +33,8 @@ func Fetch(files []string) {
 	t := time.NewTicker(200 * time.Millisecond)
 	yellow := color.New(color.FgYellow).SprintFunc()
 	red := color.New(color.FgRed).SprintFunc()
+	blue := color.New(color.FgCyan).SprintFunc()
+	green := color.New(color.FgHiGreen).SprintFunc()
 
 	// monitor downloads
 	completed := 0
@@ -57,11 +60,10 @@ func Fetch(files []string) {
 				if resp != nil && resp.IsComplete() {
 					// print final result
 					if resp.Error != nil {
-						fmt.Fprintf(os.Stderr, "Error downloading %s: %v\n", red(resp.Request.URL()), resp.Error)
+						fmt.Fprintf(os.Stderr, "%v Error downloading %s: %v\n", emoji.Sprint(":x:"), red(resp.Request.URL()), resp.Error)
 					} else {
-						fmt.Printf("Finished %s %v / %d bytes (%d%%)\n", yellow(resp.Filename), yellow(resp.BytesTransferred()), resp.Size, int(100*resp.Progress()))
+						fmt.Printf("Finished %s %v / %d bytes (%d%%) %s\n", yellow(resp.Filename), green(resp.BytesTransferred()), resp.Size, int(100*resp.Progress()), green("✓"))
 					}
-
 					// mark completed
 					responses[i] = nil
 					completed++
@@ -73,12 +75,11 @@ func Fetch(files []string) {
 			for _, resp := range responses {
 				if resp != nil {
 					inProgress++
-					fmt.Printf("Downloading %s %v / %d bytes (%d%%)\033[K\n", yellow(resp.Filename), red(resp.BytesTransferred()), resp.Size, int(100*resp.Progress()))
+					fmt.Printf("Downloading %s %v / %d bytes (%d%%)\033[K\n", yellow(resp.Filename), blue(resp.BytesTransferred()), resp.Size, int(100*resp.Progress()))
 				}
 			}
 		}
 	}
-
 	t.Stop()
 
 	fmt.Printf("%d files successfully downloaded.\n", len(files))
